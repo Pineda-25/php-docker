@@ -1,0 +1,11 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app_conversor_presupuesto
+    ports:
+      - "8080:80"
+    volumes:
+      - ./src:/var/www/html
+    restart: unless-stopped
