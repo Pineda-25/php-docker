@@ -1,104 +1,80 @@
-# 💱 FinanSmart - Conversor de Divisas & Gestor de Presupuesto
+# Cambio de Monedas
 
-> Aplicación web desarrollada en **PHP 8.2** con persistencia en **Base de Datos SQL (SQLite vía PDO)** y completamente **contenedorizada con Docker y Docker Compose**.
-
----
-
-## 🚀 Características Principales
-
-1. **Conversor de Divisas en Tiempo Real**:
-   - Soporte para múltiples divisas: USD, EUR, COP, MXN, PEN, ARS, GBP, BRL, CLP.
-   - Cálculo automático de tasas cruzadas y comisiones bancarias/casas de cambio.
-   - **Registro automático en SQL** de cada conversión efectuada con fecha y hora.
-
-2. **Calculadora y Control de Presupuesto**:
-   - Registro de ingresos y gastos categorizados (Alimentación, Transporte, Servicios, etc.).
-   - Panel de indicadores financieros en tiempo real: **Total Ingresos**, **Total Gastos** y **Balance Neto**.
-   - Tabla interactiva con eliminación de registros directamente en la base de datos SQL.
-
-3. **Portabilidad Total con Docker**:
-   - No requiere instalar PHP, Apache ni bases de datos en la máquina anfitriona.
-   - Los datos se almacenan en un volumen persistente (`src/data/`).
-   - Se levanta en cualquier sistema operativo (Linux, Windows, macOS) con un solo comando.
+Programa simple en PHP para realizar conversiones de divisas y almacenar el historial en una base de datos SQL, ejecutado completamente dentro de Docker.
 
 ---
 
-## 📁 Estructura del Proyecto
+## 1. Cómo Clonar el Repositorio
 
-```text
-conversor-presupuesto-php/
-├── Dockerfile              # Imagen personalizada: PHP 8.2 + Apache + PDO SQLite
-├── docker-compose.yml      # Configuración de servicios, puertos y volúmenes
-├── .dockerignore           # Archivos excluidos del contenedor
-├── .gitignore              # Archivos excluidos de Git
-├── README.md               # Documentación general
-├── INFORME.md              # Informe técnico detallado para entrega académica
-└── src/                    # Código fuente de la aplicación
-    ├── db.php              # Conexión PDO y creación de tablas SQL
-    ├── index.php           # Interfaz gráfica y lógica de negocio
-    └── data/               # Directorio donde se guarda la base de datos SQLite
-```
+Abre una terminal y ejecuta:
 
----
-
-## 🛠️ Requisitos Previos
-
-Solo necesitas tener instalado:
-- [Docker Engine](https://docs.docker.com/engine/install/)
-- [Docker Compose](https://docs.docker.com/compose/)
-
----
-
-## ⚡ Cómo Ejecutar la Aplicación
-
-### 1. Clonar el repositorio
 ```bash
-git clone git@github.com:Pineda-25/conversor-presupuesto-php.git
-cd conversor-presupuesto-php
+git clone git@github.com:Pineda-25/php-docker.git
+cd php-docker
 ```
 
-### 2. Levantar el contenedor Docker
+*(O vía HTTPS si no usas clave SSH)*:
+```bash
+git clone https://github.com/Pineda-25/php-docker.git
+cd php-docker
+```
+
+---
+
+## 2. Cómo Hacerlo Correr
+
+Solo necesitas tener Docker instalado. Ejecuta en la terminal:
+
 ```bash
 docker compose up -d --build
 ```
 
-### 3. Abrir en el navegador
-Ingresa a tu navegador web favorito en:
+Luego abre tu navegador en:
 ```text
 http://localhost:8080
 ```
 
-### 4. Detener el contenedor
-Cuando desees apagar la aplicación:
+Para detener el programa:
 ```bash
 docker compose down
 ```
 
 ---
 
-## 📊 Arquitectura de la Base de Datos SQL
+## 3. Pasos de Cómo se Hizo Todo Mediante Docker
 
-La aplicación crea automáticamente dos tablas al iniciar:
+Para que el programa funcione en cualquier computadora sin necesidad de instalar PHP, Apache ni bases de datos en la máquina física, se siguieron estos pasos:
 
-1. **`conversiones`**:
-   - `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
-   - `monto_origen` (REAL)
-   - `moneda_origen` (TEXT)
-   - `monto_destino` (REAL)
-   - `moneda_destino` (TEXT)
-   - `tasa` (REAL)
-   - `comision_porcentaje` (REAL)
-   - `fecha` (DATETIME)
+### Paso A: Creación del entorno con Dockerfile
+Se creó un archivo `Dockerfile` utilizando la imagen oficial ligera de PHP con servidor web Apache:
+- **Imagen base:** `php:8.2-apache` (trae el intérprete de PHP y el servidor web listos).
+- **Módulo Rewrite:** Se habilitó `mod_rewrite` de Apache.
+- **Directorio de trabajo:** Se definió `/var/www/html` dentro del contenedor.
+- **Copia del código:** Se copió la carpeta `src/` al contenedor.
+- **Permisos de base de datos:** Se otorgaron permisos a la carpeta `data/` para que el servidor web pueda escribir en la base de datos SQL (SQLite).
+- **Puerto expuesto:** Se configuró el puerto `80`.
 
-2. **`movimientos_presupuesto`**:
-   - `id` (INTEGER PRIMARY KEY AUTOINCREMENT)
-   - `descripcion` (TEXT)
-   - `tipo` (TEXT: 'ingreso' | 'gasto')
-   - `categoria` (TEXT)
-   - `monto` (REAL)
-   - `fecha` (DATETIME)
+### Paso B: Integración de la Base de Datos SQL
+- Se utilizó **SQLite vía PDO** directamente dentro del contenedor PHP.
+- Esto permite usar consultas SQL estándar (`CREATE TABLE`, `INSERT`, `SELECT`, `DELETE`) sin necesidad de levantar un servicio de MySQL externo que pueda fallar por puertos ocupados o configuraciones de contraseña.
+- Al iniciar la aplicación, la base de datos y la tabla `conversiones` se crean automáticamente.
+
+### Paso C: Orquestación con docker-compose.yml
+Para no tener que escribir comandos largos en la consola, se creó `docker-compose.yml`:
+- **Mapeo de puertos:** Conecta el puerto `8080` de tu máquina con el puerto `80` del contenedor (`"8080:80"`).
+- **Volumen de persistencia:** Conecta la carpeta `./src` local con `/var/www/html` del contenedor. Gracias a esto, cualquier dato guardado en la base de datos SQL no se borra al apagar el contenedor.
 
 ---
 
-## 👤 Autor
-Desarrollado por **Pineda-25**.
+## Estructura de Archivos del Proyecto
+
+```text
+php-docker/
+├── Dockerfile          # Configuración de la imagen con PHP y Apache
+├── docker-compose.yml  # Orquestación de puertos y volúmenes
+├── README.md           # Instrucciones y explicación del proyecto
+└── src/                # Código de la aplicación
+    ├── db.php          # Conexión y creación de la tabla SQL
+    ├── index.php       # Interfaz visual y cálculo de conversión
+    └── data/           # Directorio donde se guarda la base de datos SQL
+```
