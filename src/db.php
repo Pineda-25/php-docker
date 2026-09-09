@@ -1,19 +1,28 @@
 <?php
-// Conexión simple a la base de datos SQLite
 $dbDir = __DIR__ . '/data';
-if (!is_dir($dbDir)) mkdir($dbDir, 0777, true);
+if (!is_dir($dbDir)) {
+    mkdir($dbDir, 0777, true);
+}
 
-$pdo = new PDO("sqlite:$dbDir/database.sqlite");
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$dbPath = $dbDir . '/database.sqlite';
 
-// Crear tabla si no existe
-$pdo->exec("
-    CREATE TABLE IF NOT EXISTS conversiones (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        monto REAL,
-        de TEXT,
-        a TEXT,
-        resultado REAL,
-        fecha DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-");
+try {
+    $pdo = new PDO("sqlite:" . $dbPath);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+
+    // Tabla de historial de conversiones
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS conversiones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            monto_origen REAL NOT NULL,
+            moneda_origen TEXT NOT NULL,
+            monto_destino REAL NOT NULL,
+            moneda_destino TEXT NOT NULL,
+            tasa REAL NOT NULL,
+            fecha DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
+} catch (PDOException $e) {
+    die("Error de conexión a la base de datos: " . htmlspecialchars($e->getMessage()));
+}
