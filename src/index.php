@@ -131,7 +131,7 @@ $historial = $pdo->query("SELECT * FROM conversiones ORDER BY id DESC LIMIT 10")
             <div class="card shadow-sm">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="card-title mb-0 fw-bold">Historial (SQL)</h5>
+                        <h5 class="card-title mb-0 fw-bold">Historial</h5>
                         <?php if (!empty($historial)): ?>
                             <form method="POST" action="" onsubmit="return confirm('¿Limpiar historial?');">
                                 <input type="hidden" name="accion" value="limpiar">
